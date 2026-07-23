@@ -17,8 +17,11 @@ RUN cd /opt/mxe && make cc \
         MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
     rm -rf /opt/mxe/tmp-*
 
-# Qt base + tools
-RUN cd /opt/mxe && make meson-wrapper qtbase qttools qtimageformats \
+# Qt base + tools (без sql-mysql/psql/tds)
+RUN cd /opt/mxe && \
+    sed -i '/-plugin-sql-mysql\|-plugin-sql-psql\|-plugin-sql-tds\|Q_USE_SYBASE/d' \
+        src/qtbase.mk && \
+    make meson-wrapper qtbase qttools qtimageformats \
         MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
     rm -rf /opt/mxe/tmp-*
 
