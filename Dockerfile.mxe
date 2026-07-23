@@ -35,7 +35,10 @@ RUN sed -i 's/mariadb-connector-c//;s/freetds//;s/postgresql//' \
         /opt/mxe/src/qtbase.mk
 
 # Ставим mako для mesa (не откатывая deps)
-RUN pip3 install --break-system-packages mako
+RUN wget -q https://bootstrap.pypa.io/get-pip.py -O /tmp/get-pip.py && \
+    python3 /tmp/get-pip.py --break-system-packages && \
+    rm /tmp/get-pip.py && \
+    pip3 install --break-system-packages mako
 
 # qtbase
 RUN cd /opt/mxe && make qtbase \
