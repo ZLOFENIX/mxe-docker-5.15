@@ -2,72 +2,10 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-    autoconf automake autopoint bash bison bzip2 flex g++ g++-multilib \
-    gettext git gperf intltool libc6-dev-i386 libgdk-pixbuf2.0-dev \
-    libltdl-dev libssl-dev libtool libtool-bin libxml-parser-perl make \
-    openssl p7zip-full patch perl pkg-config python3 python3-mako \
-    python-is-python3 ruby sed unzip wget xz-utils cmake ninja-build \
-    lzip fakeroot libjson-perl && \
+    make perl python3 python-is-python3 ruby sed libxml-parser-perl && \
     rm -rf /var/lib/apt/lists/*
 
-RUN git clone --depth 1 https://github.com/mxe/mxe.git /opt/mxe
-
-# Toolchain
-RUN cd /opt/mxe && make cc \
-        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
-    rm -rf /opt/mxe/tmp-*
-
-# Meson wrapper
-RUN cd /opt/mxe && make meson-wrapper \
-        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
-    rm -rf /opt/mxe/tmp-*
-
-# Зависимости qtbase (БЕЗ ИЗМЕНЕНИЙ — как в закэшированной версии)
-RUN cd /opt/mxe && \
-    sed -i '/-plugin-sql-mysql\|-plugin-sql-psql\|-plugin-sql-tds\|Q_USE_SYBASE/d' \
-        src/qtbase.mk && \
-    make freetype fontconfig harfbuzz dbus icu4c openssl pcre2 \
-         MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
-    rm -rf /opt/mxe/tmp-*
-
-# НОВЫЙ слой: убираем mariadb/freetds/postgresql из _DEPS
-RUN sed -i 's/mariadb-connector-c//;s/freetds//;s/postgresql//' \
-        /opt/mxe/src/qtbase.mk
-
-# Ставим mako для mesa (не откатывая deps)
-RUN wget -q https://bootstrap.pypa.io/get-pip.py -O /tmp/get-pip.py && \
-    python3 /tmp/get-pip.py --break-system-packages && \
-    rm /tmp/get-pip.py && \
-    pip3 install --break-system-packages mako
-
-# qtbase
-RUN cd /opt/mxe && make qtbase \
-        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
-    rm -rf /opt/mxe/tmp-*
-
-# Лёгкие модули (~25-30 мин): Tools, ImageFormats, WinExtras
-RUN cd /opt/mxe && make qttools qtimageformats qtwinextras \
-        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
-    rm -rf /opt/mxe/tmp-*
-
-# QML и Quick (~60-80 мин): Declarative, QuickControls 1/2
-RUN cd /opt/mxe && make qtdeclarative qtquickcontrols qtquickcontrols2 \
-        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
-    rm -rf /opt/mxe/tmp-*
-
-# Зависимости WebKit (~20-30 мин)
-RUN cd /opt/mxe && make \
-        libxml2 libxslt libwebp qtmultimedia qtsensors qtwebchannel \
-        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
-    rm -rf /opt/mxe/tmp-*
-
-# QtWebKit (~40-60 мин)
-RUN cd /opt/mxe && make qtwebkit \
-        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
-    rm -rf /opt/mxe/tmp-*
-
-# Cleanup
-RUN rm -rf /opt/mxe/pkg /opt/mxe/log /opt/mxe/.git
+COPY mxe-usr /opt/mxe/usr
 
 ENV PATH=/opt/mxe/usr/bin:$PATH
 WORKDIR /srv
