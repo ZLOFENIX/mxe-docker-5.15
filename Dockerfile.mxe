@@ -24,7 +24,9 @@ RUN cd /opt/mxe && make meson-wrapper \
 
 # Зависимости qtbase (без SQL mariadb/psql/tds)
 RUN cd /opt/mxe && \
-    sed -i '/-plugin-sql-mysql\|-plugin-sql-psql\|-plugin-sql-tds\|Q_USE_SYBASE/d' \
+    sed -i 's/-plugin-sql-mysql//;s/-plugin-sql-psql//;s/-plugin-sql-tds -D Q_USE_SYBASE//' \
+        src/qtbase.mk && \
+    sed -i 's/mariadb-connector-c//;s/freetds//;s/postgresql//' \
         src/qtbase.mk && \
     make freetype fontconfig harfbuzz dbus icu4c openssl pcre2 \
          MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
