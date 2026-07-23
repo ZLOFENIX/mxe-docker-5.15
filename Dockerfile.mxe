@@ -4,24 +4,26 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     autoconf automake autopoint bash bison bzip2 flex g++ g++-multilib \
     gettext git gperf intltool libc6-dev-i386 libgdk-pixbuf2.0-dev \
-    libltdl-dev libssl-dev libtool-bin libxml-parser-perl make openssl \
-    p7zip-full patch perl pkg-config python3 python3-pip ruby sed unzip \
-    wget xz-utils cmake ninja-build lzip && \
-    pip3 install --break-system-packages mako && \
+    libltdl-dev libssl-dev libtool libtool-bin libxml-parser-perl make \
+    openssl p7zip-full patch perl pkg-config python3 python3-mako \
+    python-is-python3 ruby sed unzip wget xz-utils cmake ninja-build \
+    lzip fakeroot libjson-perl && \
     rm -rf /var/lib/apt/lists/*
 
 RUN git clone --depth 1 https://github.com/mxe/mxe.git /opt/mxe
 
-RUN cd /opt/mxe && make gcc \
-        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
+# Toolchain (cc = gcc + pkgconf + core)
+RUN cd /opt/mxe && make cc \
+        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
+    rm -rf /opt/mxe/tmp-*
 
-RUN cd /opt/mxe && make qtbase \
-        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
+# Qt base + tools
+RUN cd /opt/mxe && make qtbase qttools qtimageformats \
+        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
+    rm -rf /opt/mxe/tmp-*
 
-RUN cd /opt/mxe && make qttools qtimageformats \
-        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
-
-RUN rm -rf /opt/mxe/pkg /opt/mxe/tmp /opt/mxe/.git /opt/mxe/log
+# Cleanup
+RUN rm -rf /opt/mxe/pkg /opt/mxe/log /opt/mxe/.git
 
 ENV PATH=/opt/mxe/usr/bin:$PATH
 WORKDIR /srv
