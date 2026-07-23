@@ -5,8 +5,9 @@ RUN apt-get update && apt-get install -y \
     autoconf automake autopoint bash bison bzip2 flex g++ g++-multilib \
     gettext git gperf intltool libc6-dev-i386 libgdk-pixbuf2.0-dev \
     libltdl-dev libssl-dev libtool-bin libxml-parser-perl make openssl \
-    p7zip-full patch perl pkg-config python3 ruby sed unzip wget xz-utils \
-    cmake ninja-build && \
+    p7zip-full patch perl pkg-config python3 python3-pip ruby sed unzip \
+    wget xz-utils cmake ninja-build lzip && \
+    pip3 install --break-system-packages mako && \
     rm -rf /var/lib/apt/lists/*
 
 RUN git clone --depth 1 https://github.com/mxe/mxe.git /opt/mxe
