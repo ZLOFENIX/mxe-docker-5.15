@@ -1,0 +1,47 @@
+#!/bin/bash
+set -e
+
+cd /opt/mxe
+
+# Убираем mariadb/freetds/postgresql из qtbase.mk
+sed -i '/-plugin-sql-mysql\|-plugin-sql-psql\|-plugin-sql-tds\|Q_USE_SYBASE/d' src/qtbase.mk
+sed -i 's/mariadb-connector-c//;s/freetds//;s/postgresql//' src/qtbase.mk
+
+# 1. Toolchain
+make cc MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
+rm -rf /opt/mxe/tmp-*
+
+# 2. Meson wrapper
+make meson-wrapper MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
+rm -rf /opt/mxe/tmp-*
+
+# 3. Зависимости qtbase
+make freetype fontconfig harfbuzz dbus icu4c openssl pcre2 \
+    MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
+rm -rf /opt/mxe/tmp-*
+
+# 4. Qt base
+make qtbase MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
+rm -rf /opt/mxe/tmp-*
+
+# 5. Лёгкие модули
+make qttools qtimageformats qtwinextras \
+    MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
+rm -rf /opt/mxe/tmp-*
+
+# 6. QML и Quick
+make qtdeclarative qtquickcontrols qtquickcontrols2 \
+    MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
+rm -rf /opt/mxe/tmp-*
+
+# 7. Зависимости WebKit
+make libxml2 libxslt libwebp qtmultimedia qtsensors qtwebchannel \
+    MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
+rm -rf /opt/mxe/tmp-*
+
+# 8. WebKit
+make qtwebkit MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
+rm -rf /opt/mxe/tmp-*
+
+# Cleanup
+rm -rf /opt/mxe/pkg /opt/mxe/log /opt/mxe/.git
