@@ -12,16 +12,39 @@ RUN apt-get update && apt-get install -y \
 
 RUN git clone --depth 1 https://github.com/mxe/mxe.git /opt/mxe
 
-# Toolchain (cc = gcc + pkgconf + core)
+# Toolchain
 RUN cd /opt/mxe && make cc \
         MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
     rm -rf /opt/mxe/tmp-*
 
-# Qt base + tools (без sql-mysql/psql/tds)
+# Meson wrapper
+RUN cd /opt/mxe && make meson-wrapper \
+        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
+    rm -rf /opt/mxe/tmp-*
+
+# Зависимости qtbase (без SQL mariadb/psql/tds)
 RUN cd /opt/mxe && \
     sed -i '/-plugin-sql-mysql\|-plugin-sql-psql\|-plugin-sql-tds\|Q_USE_SYBASE/d' \
         src/qtbase.mk && \
-    make meson-wrapper qtbase qttools qtimageformats \
+    make freetype fontconfig harfbuzz dbus icu4c openssl pcre2 \
+         MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
+    rm -rf /opt/mxe/tmp-*
+
+# qtbase
+RUN cd /opt/mxe && make qtbase \
+        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
+    rm -rf /opt/mxe/tmp-*
+
+# QtTools + QtImageFormats + QML/Quick + WinExtras
+RUN cd /opt/mxe && make qttools qtimageformats \
+        qtdeclarative qtquickcontrols qtquickcontrols2 qtwinextras \
+        MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
+    rm -rf /opt/mxe/tmp-*
+
+# QtWebKit + его зависимости
+RUN cd /opt/mxe && make \
+        libxml2 libxslt libwebp qtmultimedia qtsensors qtwebchannel \
+        qtwebkit \
         MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
     rm -rf /opt/mxe/tmp-*
 
