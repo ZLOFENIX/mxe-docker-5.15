@@ -18,7 +18,7 @@ RUN cd /opt/mxe && make cc \
     rm -rf /opt/mxe/tmp-*
 
 # Qt base + tools
-RUN cd /opt/mxe && make qtbase qttools qtimageformats \
+RUN cd /opt/mxe && make meson-wrapper qtbase qttools qtimageformats \
         MXE_TARGETS='i686-w64-mingw32.shared' JOBS=2 && \
     rm -rf /opt/mxe/tmp-*
 
