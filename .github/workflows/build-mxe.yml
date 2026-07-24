@@ -72,6 +72,45 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Package Qt Runtime
+        run: |
+          QT=/opt/mxe/usr/i686-w64-mingw32.shared
+          mkdir -p qt-dist
+          
+          # Qt DLLs
+          cp $QT/qt5/bin/Qt5*.dll qt-dist/
+          
+          # QML + plugins
+          cp -r $QT/qt5/qml qt-dist/
+          cp -r $QT/qt5/plugins qt-dist/
+          
+          # Runtime DLLs (mingw + зависимости)
+          cp $QT/bin/libgcc_s_sjlj-1.dll $QT/bin/libstdc++-6.dll \
+             $QT/bin/libwinpthread-1.dll qt-dist/
+          cp $QT/bin/libfreetype-6.dll $QT/bin/libharfbuzz-0.dll \
+             $QT/bin/libpng16-16.dll $QT/bin/libjpeg-9.dll \
+             $QT/bin/zlib1.dll $QT/bin/libbz2.dll $QT/bin/libzstd.dll \
+             $QT/bin/libpcre2-16-0.dll $QT/bin/libpcre-1.dll \
+             $QT/bin/libglib-2.0-0.dll $QT/bin/libintl-8.dll \
+             $QT/bin/libiconv-2.dll qt-dist/
+          
+          # OpenSSL
+          cp $QT/bin/libcrypto-*.dll $QT/bin/libssl-*.dll qt-dist/
+          
+          # WebKit + ICU (для WebKit)
+          cp $QT/qt5/bin/Qt5WebKit*.dll qt-dist/ 2>/dev/null || true
+          cp $QT/bin/icu*.dll qt-dist/ 2>/dev/null || true
+          cp $QT/bin/libxml2*.dll $QT/bin/libxslt*.dll qt-dist/ 2>/dev/null || true
+          
+          cd qt-dist && 7z a -mx9 ../qt-runtime.zip . && cd ..
+
+      - name: Upload Qt Runtime
+        uses: actions/upload-artifact@v4
+        with:
+          name: qt-runtime
+          path: qt-runtime.zip
+          retention-days: 90
+          
       - name: Save MXE Cache
         if: always() && steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
