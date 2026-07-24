@@ -77,35 +77,34 @@ jobs:
           QT=/opt/mxe/usr/i686-w64-mingw32.shared
           mkdir -p qt-dist
           
-          # Qt DLLs (оставляем OpenGL/Svg, удаляем неиспользуемые)
+          # Qt DLLs (ВЕРНУЛИ PrintSupport и Test, удаляем только DBus и Help)
           cp $QT/qt5/bin/Qt5*.dll qt-dist/
-          rm -f qt-dist/Qt5DBus.dll qt-dist/Qt5Test.dll qt-dist/Qt5Help.dll \
-                qt-dist/Qt5PrintSupport.dll
+          rm -f qt-dist/Qt5DBus.dll qt-dist/Qt5Help.dll
+          
+          # Удаляем лишние harfbuzz-варианты и cairo, чтобы не тянуть pixman/fontconfig
+          rm -f qt-dist/libharfbuzz-cairo-*.dll qt-dist/libharfbuzz-gobject-*.dll \
+                qt-dist/libharfbuzz-gpu-*.dll qt-dist/libharfbuzz-icu-*.dll \
+                qt-dist/libharfbuzz-raster-*.dll qt-dist/libharfbuzz-subset-*.dll \
+                qt-dist/libharfbuzz-vector-*.dll qt-dist/libcairo-2.dll
           
           # QML (в корень)
           cp -r $QT/qt5/qml/* qt-dist/
           
-          # Plugins (полностью — критично для qwindows.dll, qsvg.dll)
+          # Plugins
           cp -r $QT/qt5/plugins qt-dist/
           
-          # Runtime + 3rd-party DLLs
+          # Runtime + 3rd-party DLLs (добавили libffi, libsharpyuv и плагины картинок)
           for f in libgcc_s_sjlj-1.dll libstdc++-6.dll libwinpthread-1.dll \
                    libfreetype-*.dll libharfbuzz-0.dll libpng16-*.dll libjpeg-*.dll \
                    zlib1.dll libbz2*.dll libzstd.dll libpcre2-16-*.dll libpcre2-8-*.dll \
-                   libpcre-*.dll libglib-2.0-0.dll libgobject-2.0-0.dll libintl-*.dll \
-                   libiconv-*.dll libcrypto-*.dll libssl-*.dll \
-                   libbrotlidec.dll libbrotlicommon.dll libcairo-2.dll \
-                   libEGL.dll libGLESv2.dll \
+                   libpcre-*.dll libglib-2.0-0.dll libgobject-2.0-0.dll libffi-*.dll \
+                   libintl-*.dll libiconv-*.dll libcrypto-*.dll libssl-*.dll \
+                   libbrotlidec.dll libbrotlicommon.dll \
                    icu*.dll libxml2*.dll libxslt*.dll \
-                   libsqlite3-*.dll libwebp-*.dll; do
+                   libsqlite3-*.dll libwebp-*.dll libsharpyuv-*.dll \
+                   libtiff-*.dll libjasper.dll libmng-*.dll; do
             cp $QT/bin/$f qt-dist/ 2>/dev/null || true
           done
-          
-          # Проверки критичных компонентов
-          echo "=== Critical checks ==="
-          [ -f qt-dist/plugins/platforms/qwindows.dll ] && echo "OK: qwindows.dll" || echo "FATAL: qwindows.dll MISSING!"
-          [ -f qt-dist/Qt5Svg.dll ] && echo "OK: Qt5Svg.dll" || echo "WARN: Qt5Svg.dll missing (qsvg plugin will fail)"
-          ls qt-dist/Qt5WebKit*.dll 2>/dev/null && echo "OK: WebKit present" || echo "NOTE: WebKit not found"
           
           echo "=== Final DLL count: $(ls qt-dist/*.dll | wc -l) ==="
 
