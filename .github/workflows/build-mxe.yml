@@ -55,7 +55,8 @@ jobs:
 
       - name: Clone MXE
         if: steps.cache.outputs.cache-hit != 'true'
-        run: git clone --depth 1 https://github.com/mxe/mxe.git /opt/mxe
+        run: |
+          [ -d /opt/mxe ] || git clone --depth 1 https://github.com/mxe/mxe.git /opt/mxe
 
       - name: Build MXE
         if: steps.cache.outputs.cache-hit != 'true'
