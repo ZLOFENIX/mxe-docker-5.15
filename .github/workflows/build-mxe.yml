@@ -72,7 +72,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-       - name: Package Qt Runtime
+      - name: Package Qt Runtime
         run: |
           QT=/opt/mxe/usr/i686-w64-mingw32.shared
           mkdir -p qt-dist
