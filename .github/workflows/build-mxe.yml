@@ -36,7 +36,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /opt/mxe
-          key: mxe-build-v1
+          key: mxe-build-${{ hashFiles('build-mxe.sh') }}
           restore-keys: |
             mxe-build-
           save-always: true
