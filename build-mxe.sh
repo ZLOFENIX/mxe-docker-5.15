@@ -39,11 +39,16 @@ make libxml2 libxslt libwebp qtmultimedia qtsensors qtwebchannel \
     MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
 rm -rf /opt/mxe/tmp-*
 
-# 8. WebKit — не фатально, лог сохранится для анализа
+# 8. WebKit — фикс Ruby 3.x (Object#=~ удалён в Ruby 3.0)
+# Не фатально: лог сохранится в /opt/mxe/log для анализа
+echo 'class Object; def =~(other); nil; end; end' > /tmp/ruby_compat.rb
+export RUBYOPT="-r/tmp/ruby_compat.rb"
 set +e
 make qtwebkit MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
 WEBKIT_EXIT=$?
 set -e
+unset RUBYOPT
+rm -f /tmp/ruby_compat.rb
 rm -rf /opt/mxe/tmp-*
 
 if [ $WEBKIT_EXIT -ne 0 ]; then
