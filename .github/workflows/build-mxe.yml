@@ -107,14 +107,7 @@ jobs:
                    icu*.dll libxml2*.dll libxslt*.dll \
                    libsqlite3-*.dll libsharpyuv-*.dll libwebp*.dll \
                    libtiff-*.dll libjasper.dll libmng-*.dll liblcms2-*.dll; do
-            
-            # Проверяем, есть ли совпадения в исходной папке
-            matches=$(ls $QT/bin/$f 2>/dev/null)
-            if [ -n "$matches" ]; then
-              cp $QT/bin/$f qt-dist/
-            else
-              echo "WARN: Pattern '$f' not found in MXE bin/"
-            fi
+            cp $QT/bin/$f qt-dist/ 2>/dev/null || echo "WARN: Pattern '$f' not found in MXE bin/"
           done
           
           # Проверка критичных компонентов
