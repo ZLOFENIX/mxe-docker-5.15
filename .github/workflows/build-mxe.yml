@@ -73,7 +73,7 @@ jobs:
           retention-days: 7
 
       - name: Save MXE Cache
-        if: always()
+        if: always() && steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: /opt/mxe
