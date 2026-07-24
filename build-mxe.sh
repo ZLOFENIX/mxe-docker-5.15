@@ -3,7 +3,7 @@ set -e
 
 cd /opt/mxe
 
-# Убираем mariadb/freetds/postgresql из qtbase.mk
+# Убираем SQL-плагины (mariadb/freetds/postgresql)
 sed -i '/-plugin-sql-mysql\|-plugin-sql-psql\|-plugin-sql-tds\|Q_USE_SYBASE/d' src/qtbase.mk
 sed -i 's/mariadb-connector-c//;s/freetds//;s/postgresql//' src/qtbase.mk
 
@@ -39,9 +39,19 @@ make libxml2 libxslt libwebp qtmultimedia qtsensors qtwebchannel \
     MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
 rm -rf /opt/mxe/tmp-*
 
-# 8. WebKit
+# 8. WebKit — не фатально, лог сохранится для анализа
+set +e
 make qtwebkit MXE_TARGETS='i686-w64-mingw32.shared' JOBS=$(nproc)
+WEBKIT_EXIT=$?
+set -e
 rm -rf /opt/mxe/tmp-*
 
-# Cleanup
-rm -rf /opt/mxe/pkg /opt/mxe/log /opt/mxe/.git
+if [ $WEBKIT_EXIT -ne 0 ]; then
+    echo "============================================"
+    echo "WARNING: QtWebKit failed (exit $WEBKIT_EXIT)"
+    echo "Full log: /opt/mxe/log/qtwebkit_i686-w64-mingw32.shared"
+    echo "============================================"
+fi
+
+# Cleanup (log НЕ удаляем — нужен для артефакта)
+rm -rf /opt/mxe/pkg /opt/mxe/.git
