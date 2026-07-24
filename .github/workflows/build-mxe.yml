@@ -39,7 +39,7 @@ jobs:
           key: mxe-build-v1
           restore-keys: |
             mxe-build-
-          always-save: true
+          save-always: true
 
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
